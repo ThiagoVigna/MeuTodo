@@ -20,16 +20,12 @@ namespace MeuTodo.Controllers
 
         [HttpGet]
         [Route("Users")]
-        public async Task<IActionResult> GetAsync()
+        public async Task<ActionResult<IEquatable<Users>>> GetAsync()
         {
-            if (!ModelState.IsValid)
-                return BadRequest();
-
-               var data = await _context
+            var data = await _context
                 .Users
                 .AsNoTracking()
                 .ToListAsync();
-
 
                 return data is null
                     ? NotFound()
@@ -38,20 +34,18 @@ namespace MeuTodo.Controllers
 
         [HttpGet]
         [Route("Users/{id}")]
-        public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
+        public async Task<ActionResult<Users>> GetByIdAsync([FromRoute] int id)
         {
-            var users = await _context
-                .Users             
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
+            Users users = await _context.Users.FindAsync(id);
 
-            return users is null
-                ? NotFound()
-                : Ok(users);
+            if(users is null)
+                return NotFound();
+
+            return users;
         }
 
         [HttpPost("users")]
-        public async Task<IActionResult> PostAsync([FromBody] CreateUserViewModel model)
+        public async Task<ActionResult<Users>> PostAsync([FromBody] CreateUserViewModel model)
 
         {
             if (!ModelState.IsValid)
@@ -78,7 +72,7 @@ namespace MeuTodo.Controllers
         }
 
         [HttpPut("users/{id}")]
-        public async Task<IActionResult> PutAsync([FromBody] CreateUserViewModel model,[FromRoute] int Id)
+        public async Task<ActionResult> PutAsync([FromBody] CreateUserViewModel model,[FromRoute] int Id)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -106,7 +100,7 @@ namespace MeuTodo.Controllers
         }
 
         [HttpDelete("users/{id}")]
-        public async Task<IActionResult> DeleteAsync([FromRoute] int id)
+        public async Task<ActionResult> DeleteAsync([FromRoute] int id)
         {
             var users = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
