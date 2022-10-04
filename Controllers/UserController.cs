@@ -45,7 +45,7 @@ namespace MeuTodo.Controllers
         }
 
         [HttpPost("users")]
-        public async Task<ActionResult<Users>> PostAsync([FromBody] CreateUserViewModel model)
+        public async Task<ActionResult<Users>> PostAsync(CreateUserViewModel model)
 
         {
             if (!ModelState.IsValid)
