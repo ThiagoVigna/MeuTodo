@@ -11,12 +11,15 @@ namespace MeuTodo
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(c =>
+            {
+                c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin());
+            });
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "API Rest", Version = "v1" });
             });
-
             services.AddDbContext<AppDataContext>();
         }
 
@@ -30,8 +33,8 @@ namespace MeuTodo
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Rest v1"));
             }
 
+            app.UseCors(options => options.AllowAnyOrigin());
             app.UseRouting();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

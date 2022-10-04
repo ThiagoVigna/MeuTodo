@@ -12,56 +12,46 @@ namespace MeuTodo.Controllers
     [Route("v1")]
     public class UserController : ControllerBase
     {
+        private AppDataContext _context;
+        public UserController(AppDataContext context)
+        {
+            this._context = context;
+        }
+
         [HttpGet]
         [Route("Users")]
-        public async Task<IActionResult> GetAsync(
-           [FromServices] AppDataContext context,
-           [FromQuery]CreateUserListViewModel list)
+        public async Task<IActionResult> GetAsync()
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            try
-            {
-               var data = await context
+               var data = await _context
                 .Users
                 .AsNoTracking()
                 .ToListAsync();
 
 
-                return data == null
+                return data is null
                     ? NotFound()
                     : Ok(data);
-
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
         }
 
         [HttpGet]
         [Route("Users/{id}")]
-        public async Task<IActionResult> GetByIdAsync(
-            [FromServices] AppDataContext context,
-            [FromRoute] int id)
+        public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
-            var users = await context
+            var users = await _context
                 .Users             
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            return users == null
+            return users is null
                 ? NotFound()
                 : Ok(users);
         }
 
         [HttpPost("users")]
-        public async Task<IActionResult> PostAsync(
-            [FromServices] AppDataContext context,
-            [FromBody] CreateUserViewModel model)
+        public async Task<IActionResult> PostAsync([FromBody] CreateUserViewModel model)
 
         {
             if (!ModelState.IsValid)
@@ -77,8 +67,8 @@ namespace MeuTodo.Controllers
 
             try
             {
-                await context.Users.AddAsync(user);
-                await context.SaveChangesAsync();
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
                 return Created($"v1/users/{user.Id}", user);
             }
             catch
@@ -88,19 +78,15 @@ namespace MeuTodo.Controllers
         }
 
         [HttpPut("users/{id}")]
-        public async Task<IActionResult> PutAsync(
-           [FromServices] AppDataContext context,
-           [FromBody] CreateUserViewModel model,
-           [FromRoute] int Id)
+        public async Task<IActionResult> PutAsync([FromBody] CreateUserViewModel model,[FromRoute] int Id)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var data = await context.Users.FirstOrDefaultAsync(x => x.Id == Id);
+            var data = await _context.Users.FirstOrDefaultAsync(x => x.Id == Id);
 
-            if (data == null)
+            if (data is null)
                 return NotFound();
-
           
             try
             {
@@ -109,8 +95,8 @@ namespace MeuTodo.Controllers
                 data.Login= model.Login;  
                 data.Password= model.Password;
 
-                context.Users.Update(data);
-                await context.SaveChangesAsync();
+                _context.Users.Update(data);
+                await _context.SaveChangesAsync();
                 return Ok(data);
             }
             catch (Exception)
@@ -119,18 +105,15 @@ namespace MeuTodo.Controllers
             }
         }
 
-
         [HttpDelete("users/{id}")]
-        public async Task<IActionResult> DeleteAsync(
-            [FromServices] AppDataContext context,
-            [FromRoute] int id)
+        public async Task<IActionResult> DeleteAsync([FromRoute] int id)
         {
-            var users = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
+            var users = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
             try
             {
-                context.Users.Remove(users);
-                await context.SaveChangesAsync();
+                _context.Users.Remove(users);
+                await _context.SaveChangesAsync();
 
                 return Ok();
             }

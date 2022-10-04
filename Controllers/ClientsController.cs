@@ -12,54 +12,42 @@ namespace MeuTodo.Controllers
     [Route("v1")]
     public class ClientsController : ControllerBase
     {
+        private AppDataContext _context;
+        public ClientsController(AppDataContext context)
+        {
+            this._context = context;
+        }
+
         [HttpGet]
         [Route("client")]
-        public async Task<IActionResult> GetAsync(
-           [FromServices] AppDataContext context)
+        public async Task<IActionResult> GetAsync()
         {
-            if (!ModelState.IsValid)
-                return BadRequest();
-
-            try
-            {
-                var data = await context
+            var data = await _context
                  .Clients
                  .AsNoTracking()
                  .ToListAsync();
 
-                return data == null
+                return data is null
                     ? NotFound()
                     : Ok(data);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
         }
 
         [HttpGet]
         [Route("client/{id}")]
-        public async Task<IActionResult> GetByIdAsync(
-            [FromServices] AppDataContext context,
-            [FromRoute] int id)
+        public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
-            var client = await context
+            var client = await _context
                 .Clients
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            return client == null
+            return client is null
                 ? NotFound()
                 : Ok(client);
         }
 
         [HttpPost("client")]
-        public async Task<IActionResult> PostAsync(
-            [FromServices] AppDataContext context,
-            [FromBody] CreateClientViewModel model)
-
+        public async Task<IActionResult> PostAsync([FromBody] CreateClientViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -72,8 +60,8 @@ namespace MeuTodo.Controllers
 
             try
             {
-                await context.Clients.AddAsync(clients);
-                await context.SaveChangesAsync();
+                await _context.Clients.AddAsync(clients);
+                await _context.SaveChangesAsync();
                 return Created($"v1/client/{clients.Id}", clients);
             }
             catch
@@ -83,27 +71,23 @@ namespace MeuTodo.Controllers
         }
 
         [HttpPut("client/{id}")]
-        public async Task<IActionResult> PutAsync(
-           [FromServices] AppDataContext context,
-           [FromBody] CreateClientViewModel model,
-           [FromRoute] int Id)
+        public async Task<IActionResult> PutAsync([FromBody] CreateClientViewModel model, [FromRoute] int Id)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var data = await context.Clients.FirstOrDefaultAsync(x => x.Id == Id);
+            var data = await _context.Clients.FirstOrDefaultAsync(x => x.Id == Id);
 
-            if (data == null)
+            if (data is null)
                 return NotFound();
-
 
             try
             {
                 data.SocialReason = model.SocialReason;
                 data.Cnpj = model.Cnpj;
 
-                context.Clients.Update(data);
-                await context.SaveChangesAsync();
+                _context.Clients.Update(data);
+                await _context.SaveChangesAsync();
                 return Ok(data);
             }
             catch (Exception)
@@ -112,18 +96,15 @@ namespace MeuTodo.Controllers
             }
         }
 
-
         [HttpDelete("client/{id}")]
-        public async Task<IActionResult> DeleteAsync(
-            [FromServices] AppDataContext context,
-            [FromRoute] int id)
+        public async Task<IActionResult> DeleteAsync([FromRoute] int id)
         {
-            var users = await context.Clients.FirstOrDefaultAsync(x => x.Id == id);
+            var users = await _context.Clients.FirstOrDefaultAsync(x => x.Id == id);
 
             try
             {
-                context.Clients.Remove(users);
-                await context.SaveChangesAsync();
+                _context.Clients.Remove(users);
+                await _context.SaveChangesAsync();
 
                 return Ok();
             }

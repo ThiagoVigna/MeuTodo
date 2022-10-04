@@ -12,54 +12,42 @@ namespace MeuTodo.Controllers
     [Route("v1")]
     public class ProductController : ControllerBase
     {
+        private AppDataContext _context;
+        public ProductController(AppDataContext context)
+        {
+            this._context = context;
+        }
+
         [HttpGet]
         [Route("product")]
-        public async Task<IActionResult> GetAsync(
-           [FromServices] AppDataContext context)
+        public async Task<IActionResult> GetAsync()
         {
-            if (!ModelState.IsValid)
-                return BadRequest();
+            var data = await _context
+             .Products
+             .AsNoTracking()
+             .ToListAsync();
 
-            try
-            {
-                var data = await context
-                 .Products
-                 .AsNoTracking()
-                 .ToListAsync();
-
-                return data == null
-                    ? NotFound()
-                    : Ok(data);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
+            return data is null
+                ? NotFound()
+                : Ok(data);
         }
 
         [HttpGet]
         [Route("product/{id}")]
-        public async Task<IActionResult> GetByIdAsync(
-            [FromServices] AppDataContext context,
-            [FromRoute] int id)
+        public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
-            var data = await context
+            var data = await _context
                 .Products
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            return data == null
+            return data is null
                 ? NotFound()
                 : Ok(data);
         }
 
         [HttpPost("product")]
-        public async Task<IActionResult> PostAsync(
-            [FromServices] AppDataContext context,
-            [FromBody] CreateProductViewModel model)
-
+        public async Task<IActionResult> PostAsync([FromBody] CreateProductViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -72,8 +60,8 @@ namespace MeuTodo.Controllers
 
             try
             {
-                await context.Products.AddAsync(product);
-                await context.SaveChangesAsync();
+                await _context.Products.AddAsync(product);
+                await _context.SaveChangesAsync();
                 return Created($"v1/product/{product.Id}", product);
             }
             catch
@@ -83,27 +71,23 @@ namespace MeuTodo.Controllers
         }
 
         [HttpPut("product/{id}")]
-        public async Task<IActionResult> PutAsync(
-           [FromServices] AppDataContext context,
-           [FromBody] CreateProductViewModel model,
-           [FromRoute] int Id)
+        public async Task<IActionResult> PutAsync([FromBody] CreateProductViewModel model,[FromRoute] int Id)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var data = await context.Products.FirstOrDefaultAsync(x => x.Id == Id);
+            var data = await _context.Products.FirstOrDefaultAsync(x => x.Id == Id);
 
-            if (data == null)
+            if (data is null)
                 return NotFound();
-
 
             try
             {
                 data.NameProduct = model.NameProduct;
                 data.Price = model.Price;
 
-                context.Products.Update(data);
-                await context.SaveChangesAsync();
+                _context.Products.Update(data);
+                await _context.SaveChangesAsync();
                 return Ok(data);
             }
             catch (Exception)
@@ -112,18 +96,15 @@ namespace MeuTodo.Controllers
             }
         }
 
-
         [HttpDelete("product/{id}")]
-        public async Task<IActionResult> DeleteAsync(
-            [FromServices] AppDataContext context,
-            [FromRoute] int id)
+        public async Task<IActionResult> DeleteAsync([FromRoute] int id)
         {
-            var product = await context.Products.FirstOrDefaultAsync(x => x.Id == id);
+            var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
 
             try
             {
-                context.Products.Remove(product);
-                await context.SaveChangesAsync();
+                _context.Products.Remove(product);
+                await _context.SaveChangesAsync();
 
                 return Ok();
             }
